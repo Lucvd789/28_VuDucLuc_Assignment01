@@ -1,0 +1,48 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+*.lock.json
+!packages.lock.json
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish output
+publish/
+**/Properties/PublishProfiles/
+
+# Logs
+*.log
+logs/
+
+# Environment / Secrets
+.env
+appsettings.Production.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

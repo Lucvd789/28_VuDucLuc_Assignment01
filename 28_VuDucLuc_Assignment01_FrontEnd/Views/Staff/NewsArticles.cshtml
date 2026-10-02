@@ -1,0 +1,260 @@
+@model List<_28_VuDucLuc_Assignment01_FrontEnd.Models.NewsArticle>
+@{
+    ViewData["Title"] = "Quản lý Bài viết";
+}
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-newspaper me-3" style="color:var(--primary-light)"></i>Quản lý Bài viết</h1>
+        <p class="page-subtitle mt-1">Tạo, chỉnh sửa và xóa bài viết</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <span class="text-muted-custom small"><i class="fas fa-newspaper me-1"></i>@Model.Count bài viết</span>
+        <button class="btn btn-primary" onclick="openCreateArticleModal()">
+            <i class="fas fa-plus me-2"></i>Tạo bài viết
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề</th>
+                            <th>Danh mục</th>
+                            <th>Tags</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="articleTableBody">
+                        @foreach (var a in Model)
+                        {
+                            <tr id="arow-@a.NewsArticleId">
+                                <td><span class="badge badge-role">#@a.NewsArticleId</span></td>
+                                <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary)">
+                                    @a.NewsTitle</td>
+                                <td>@(a.Category?.CategoryName ?? "-")</td>
+                                <td>
+                                    @foreach (var t in a.Tags.Take(2))
+                                    { <span class="tag-chip">@t.TagName</span> }
+                                    @if (a.Tags.Count > 2)
+                                    { <span class="text-muted-custom small">+@(a.Tags.Count - 2)</span> }
+                                </td>
+                                <td>
+                                    @if (a.NewsStatus == true)
+                                    { <span class="badge badge-active">Active</span> }
+                                    else
+                                    { <span class="badge badge-inactive">Inactive</span> }
+                                </td>
+                                <td>@a.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary me-1"
+                                        onclick="openEditArticleModal('@a.NewsArticleId','@Html.Raw(a.NewsTitle?.Replace("'","\\\'"))',
+                                            '@Html.Raw(a.Headline?.Replace("'","\\\'"))','@a.CategoryId',
+                                            @(a.NewsStatus == true ? "true" : "false"),
+                                            [@string.Join(",", a.Tags.Select(t => t.TagId))])">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteArticle('@a.NewsArticleId')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Article Modal -->
+<div class="modal fade" id="articleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="articleModalTitle">Tạo bài viết mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="articleFormError" class="alert alert-danger d-none"></div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">ID bài viết <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="aId" placeholder="VD: ART001" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+                        <select class="form-select" id="aCatId">
+                            <option value="">-- Chọn danh mục --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" id="aStatus">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="aTitle" placeholder="Tiêu đề bài viết" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Headline <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="aHeadline" placeholder="Tóm tắt ngắn" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Nội dung</label>
+                        <textarea class="form-control" id="aContent" rows="5" placeholder="Nội dung bài viết..."></textarea>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Nguồn tin</label>
+                        <input type="text" class="form-control" id="aSource" placeholder="VD: Internet, N/A" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Tags</label>
+                        <div class="check-group" id="tagCheckGroup"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveArticle()">
+                    <i class="fas fa-save me-1"></i>Lưu bài viết
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let articleEditMode = false;
+let allTags = [];
+let allCats = [];
+
+async function loadFormData() {
+    if (allTags.length > 0) return;
+    const res = await fetch('/Staff/GetArticleFormData');
+    const data = await res.json();
+    allCats = data.categories || [];
+    allTags = data.tags || [];
+
+    const catSel = document.getElementById('aCatId');
+    allCats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.categoryId; opt.text = c.categoryName;
+        catSel.appendChild(opt);
+    });
+}
+
+function renderTags(selectedIds = []) {
+    const container = document.getElementById('tagCheckGroup');
+    container.innerHTML = '';
+    allTags.forEach(t => {
+        const isChecked = selectedIds.includes(t.tagId);
+        const lbl = document.createElement('label');
+        lbl.className = 'check-label' + (isChecked ? ' checked' : '');
+        lbl.innerHTML = `<input type="checkbox" value="${t.tagId}" ${isChecked ? 'checked' : ''}>${t.tagName}`;
+        container.appendChild(lbl);
+    });
+}
+
+async function openCreateArticleModal() {
+    articleEditMode = false;
+    await loadFormData();
+    document.getElementById('articleModalTitle').textContent = 'Tạo bài viết mới';
+    document.getElementById('aId').value = '';
+    document.getElementById('aId').readOnly = false;
+    document.getElementById('aTitle').value = '';
+    document.getElementById('aHeadline').value = '';
+    document.getElementById('aContent').value = '';
+    document.getElementById('aSource').value = '';
+    document.getElementById('aCatId').value = '';
+    document.getElementById('aStatus').value = 'true';
+    document.getElementById('articleFormError').classList.add('d-none');
+    renderTags([]);
+    new bootstrap.Modal(document.getElementById('articleModal')).show();
+}
+
+async function openEditArticleModal(id, title, headline, catId, status, tagIds) {
+    articleEditMode = true;
+    await loadFormData();
+    document.getElementById('articleModalTitle').textContent = 'Chỉnh sửa bài viết';
+    document.getElementById('aId').value = id;
+    document.getElementById('aId').readOnly = true;
+    document.getElementById('aTitle').value = title;
+    document.getElementById('aHeadline').value = headline;
+    document.getElementById('aCatId').value = catId || '';
+    document.getElementById('aStatus').value = status ? 'true' : 'false';
+    document.getElementById('articleFormError').classList.add('d-none');
+    renderTags(Array.isArray(tagIds) ? tagIds : []);
+    new bootstrap.Modal(document.getElementById('articleModal')).show();
+}
+
+function getSelectedTagIds() {
+    return Array.from(document.querySelectorAll('#tagCheckGroup input:checked')).map(i => parseInt(i.value));
+}
+
+async function saveArticle() {
+    const id = document.getElementById('aId').value.trim();
+    const title = document.getElementById('aTitle').value.trim();
+    const headline = document.getElementById('aHeadline').value.trim();
+    const content = document.getElementById('aContent').value.trim();
+    const source = document.getElementById('aSource').value.trim();
+    const catId = parseInt(document.getElementById('aCatId').value) || null;
+    const status = document.getElementById('aStatus').value === 'true';
+    const tagIds = getSelectedTagIds();
+
+    if (!id || !title || !headline) {
+        showArticleError('Vui lòng điền ID, Tiêu đề và Headline.'); return;
+    }
+
+    const url = articleEditMode ? '/Staff/UpdateArticle' : '/Staff/CreateArticle';
+    const res = await apiPost(url, {
+        newsArticleId: id, newsTitle: title, headline, newsContent: content,
+        newsSource: source, categoryId: catId, newsStatus: status, selectedTagIds: tagIds
+    });
+
+    if (res.success) {
+        bootstrap.Modal.getInstance(document.getElementById('articleModal')).hide();
+        showToast(articleEditMode ? 'Cập nhật thành công!' : 'Tạo bài viết thành công!', 'success');
+        setTimeout(() => location.reload(), 1000);
+    } else {
+        showArticleError(res.message || 'Thao tác thất bại.');
+    }
+}
+
+async function deleteArticle(id) {
+    const confirmed = await showConfirm('Bạn có chắc muốn xóa bài viết này?');
+    if (!confirmed) return;
+
+    const fd = new FormData();
+    fd.append('id', id);
+    fd.append('__RequestVerificationToken', getToken());
+    const res = await fetch('/Staff/DeleteArticle', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (data.success) {
+        document.getElementById(`arow-${id}`)?.remove();
+        showToast('Xóa bài viết thành công!', 'success');
+    } else {
+        showToast(data.message || 'Xóa thất bại!', 'danger');
+    }
+}
+
+function showArticleError(msg) {
+    const el = document.getElementById('articleFormError');
+    el.textContent = msg; el.classList.remove('d-none');
+}
+</script>
+<form id="__AntiForgery" style="display:none">@Html.AntiForgeryToken()</form>
+}

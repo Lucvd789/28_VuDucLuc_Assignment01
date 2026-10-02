@@ -1,0 +1,183 @@
+@model List<_28_VuDucLuc_Assignment01_FrontEnd.Models.Category>
+@{
+    ViewData["Title"] = "Quản lý Danh mục";
+}
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-folder me-3" style="color:var(--success)"></i>Quản lý Danh mục</h1>
+        <p class="page-subtitle mt-1">Tạo và quản lý các danh mục bài viết</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <span class="text-muted-custom small"><i class="fas fa-folder me-1"></i>@Model.Count danh mục</span>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            <i class="fas fa-plus me-2"></i>Thêm danh mục
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên danh mục</th>
+                            <th>Mô tả</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cat in Model)
+                        {
+                            <tr id="crow-@cat.CategoryId"
+                                data-id="@cat.CategoryId" data-name="@cat.CategoryName"
+                                data-desc="@cat.CategoryDesciption" data-active="@cat.IsActive?.ToString().ToLower()"
+                                data-parent="@cat.ParentCategoryId">
+                                <td><span class="badge badge-role">#@cat.CategoryId</span></td>
+                                <td style="color:var(--text-primary);font-weight:500">@cat.CategoryName</td>
+                                <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@cat.CategoryDesciption</td>
+                                <td>
+                                    @if (cat.IsActive == true)
+                                    { <span class="badge badge-active"><i class="fas fa-check me-1"></i>Active</span> }
+                                    else
+                                    { <span class="badge badge-inactive"><i class="fas fa-times me-1"></i>Inactive</span> }
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditModal(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(@cat.CategoryId)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="catModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="catModalTitle">Thêm danh mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="catFormError" class="alert alert-danger d-none"></div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label">ID danh mục</label>
+                        <input type="number" class="form-control" id="cId" required min="1" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" id="cActive">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="cName" placeholder="VD: Academic News" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Mô tả <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="cDesc" rows="3" placeholder="Mô tả danh mục..." required></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveCategory()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let catEditMode = false;
+
+function openCreateModal() {
+    catEditMode = false;
+    document.getElementById('catModalTitle').textContent = 'Thêm danh mục mới';
+    document.getElementById('cId').value = '';
+    document.getElementById('cId').readOnly = false;
+    document.getElementById('cName').value = '';
+    document.getElementById('cDesc').value = '';
+    document.getElementById('cActive').value = 'true';
+    document.getElementById('catFormError').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('catModal')).show();
+}
+
+function openEditModal(btn) {
+    catEditMode = true;
+    const row = btn.closest('tr');
+    document.getElementById('catModalTitle').textContent = 'Chỉnh sửa danh mục';
+    document.getElementById('cId').value = row.dataset.id;
+    document.getElementById('cId').readOnly = true;
+    document.getElementById('cName').value = row.dataset.name;
+    document.getElementById('cDesc').value = row.dataset.desc;
+    document.getElementById('cActive').value = row.dataset.active;
+    document.getElementById('catFormError').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('catModal')).show();
+}
+
+async function saveCategory() {
+    const id = parseInt(document.getElementById('cId').value);
+    const name = document.getElementById('cName').value.trim();
+    const desc = document.getElementById('cDesc').value.trim();
+    const isActive = document.getElementById('cActive').value === 'true';
+
+    if (!id || !name || !desc) {
+        document.getElementById('catFormError').textContent = 'Vui lòng điền đầy đủ thông tin.';
+        document.getElementById('catFormError').classList.remove('d-none');
+        return;
+    }
+
+    const url = catEditMode ? '/Staff/UpdateCategory' : '/Staff/CreateCategory';
+    const res = await apiPost(url, { categoryId: id, categoryName: name, categoryDesciption: desc, isActive });
+
+    if (res.success) {
+        bootstrap.Modal.getInstance(document.getElementById('catModal')).hide();
+        showToast(catEditMode ? 'Cập nhật thành công!' : 'Thêm danh mục thành công!', 'success');
+        setTimeout(() => location.reload(), 1000);
+    } else {
+        document.getElementById('catFormError').textContent = res.message || 'Thao tác thất bại.';
+        document.getElementById('catFormError').classList.remove('d-none');
+    }
+}
+
+async function deleteCategory(id) {
+    const confirmed = await showConfirm('Bạn có chắc muốn xóa danh mục này?');
+    if (!confirmed) return;
+
+    const fd = new FormData();
+    fd.append('id', id);
+    fd.append('__RequestVerificationToken', getToken());
+
+    const res = await fetch('/Staff/DeleteCategory', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (data.success) {
+        document.getElementById(`crow-${id}`)?.remove();
+        showToast('Xóa danh mục thành công!', 'success');
+    } else {
+        showToast(data.message || 'Xóa thất bại!', 'danger');
+    }
+}
+</script>
+<form id="__AntiForgery" style="display:none">@Html.AntiForgeryToken()</form>
+}

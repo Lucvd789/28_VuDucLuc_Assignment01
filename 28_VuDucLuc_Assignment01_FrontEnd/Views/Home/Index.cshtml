@@ -1,0 +1,54 @@
+@model List<_28_VuDucLuc_Assignment01_FrontEnd.Models.NewsArticle>
+@{
+    ViewData["Title"] = "Tin tức FPT University";
+}
+
+<section class="hero">
+    <div class="container">
+        <h1 class="hero-title fade-in-up">FU News</h1>
+        <p class="hero-subtitle fade-in-up delay-1">Cập nhật tin tức mới nhất từ FPT University</p>
+    </div>
+</section>
+
+<div class="container py-5">
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-newspaper fa-3x mb-3" style="color:var(--primary-light);opacity:0.4"></i>
+            <p class="text-muted-custom">Chưa có bài viết nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var article in Model)
+            {
+                <div class="col-md-6 col-lg-4 fade-in-up">
+                    <div class="news-card">
+                        <div class="news-card-accent"></div>
+                        <div class="news-card-body">
+                            <div class="news-card-category">
+                                <i class="fas fa-folder me-1"></i>@(article.Category?.CategoryName ?? "Chưa phân loại")
+                            </div>
+                            <h2 class="news-card-title">@article.NewsTitle</h2>
+                            <p class="news-card-excerpt">@article.Headline</p>
+                            @if (article.Tags.Any())
+                            {
+                                <div class="mt-2">
+                                    @foreach (var tag in article.Tags.Take(3))
+                                    {
+                                        <span class="tag-chip"><i class="fas fa-tag" style="font-size:0.6rem"></i>@tag.TagName</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="news-card-footer">
+                            <span><i class="fas fa-calendar-alt me-1"></i>@article.CreatedDate?.ToString("dd/MM/yyyy")</span>
+                            <span class="badge badge-active">Active</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

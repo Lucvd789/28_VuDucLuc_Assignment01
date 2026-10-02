@@ -1,0 +1,112 @@
+@model _28_VuDucLuc_Assignment01_FrontEnd.Models.ReportViewModel
+@{
+    ViewData["Title"] = "Báo cáo bài viết";
+}
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-chart-bar me-3" style="color:var(--primary-light)"></i>Báo cáo bài viết</h1>
+        <p class="page-subtitle mt-1">Thống kê bài viết theo khoảng thời gian</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post" asp-action="Report" class="row g-3 align-items-end">
+                @Html.AntiForgeryToken()
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-1" style="color:var(--primary-light)"></i>Từ ngày</label>
+                    <input type="date" name="StartDate" class="form-control"
+                           value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-1" style="color:var(--primary-light)"></i>Đến ngày</label>
+                    <input type="date" name="EndDate" class="form-control"
+                           value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Articles.Any())
+    {
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card text-center py-3">
+                    <div class="fs-2 fw-bold" style="color:var(--primary-light)">@Model.Articles.Count</div>
+                    <div class="text-muted-custom small mt-1">Tổng bài viết</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center py-3">
+                    <div class="fs-2 fw-bold" style="color:var(--success)">@Model.Articles.Count(a => a.NewsStatus == true)</div>
+                    <div class="text-muted-custom small mt-1">Bài đang Active</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center py-3">
+                    <div class="fs-2 fw-bold" style="color:var(--warning)">@Model.Articles.Count(a => a.NewsStatus != true)</div>
+                    <div class="text-muted-custom small mt-1">Bài Inactive</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <span><i class="fas fa-list me-2"></i>Kết quả (@Model.Articles.Count bài)</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tiêu đề</th>
+                                <th>Danh mục</th>
+                                <th>Tác giả</th>
+                                <th>Ngày tạo</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int stt = 1; }
+                            @foreach (var a in Model.Articles)
+                            {
+                                <tr>
+                                    <td><span class="badge badge-role">@stt</span></td>
+                                    <td style="color:var(--text-primary);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@a.NewsTitle</td>
+                                    <td>@(a.Category?.CategoryName ?? "-")</td>
+                                    <td>@(a.CreatedBy?.AccountName ?? "-")</td>
+                                    <td>@a.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (a.NewsStatus == true)
+                                        { <span class="badge badge-active">Active</span> }
+                                        else
+                                        { <span class="badge badge-inactive">Inactive</span> }
+                                    </td>
+                                </tr>
+                                stt++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.StartDate.HasValue || Model.EndDate.HasValue)
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x mb-3" style="color:var(--primary-light);opacity:0.3"></i>
+            <p class="text-muted-custom">Không có bài viết nào trong khoảng thời gian đã chọn.</p>
+        </div>
+    }
+</div>

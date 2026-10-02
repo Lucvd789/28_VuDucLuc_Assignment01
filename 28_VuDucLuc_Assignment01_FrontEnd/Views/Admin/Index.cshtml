@@ -1,0 +1,200 @@
+@model List<_28_VuDucLuc_Assignment01_FrontEnd.Models.SystemAccount>
+@{
+    ViewData["Title"] = "Quản lý Tài khoản";
+}
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-users-cog me-3" style="color:var(--primary-light)"></i>Quản lý Tài khoản</h1>
+        <p class="page-subtitle mt-1">Thêm, chỉnh sửa và xóa tài khoản người dùng</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <!-- Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted-custom small"><i class="fas fa-users me-1"></i>@Model.Count tài khoản</span>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            <i class="fas fa-plus me-2"></i>Thêm tài khoản
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark mb-0" id="accountTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var acc in Model)
+                        {
+                            <tr id="row-@acc.AccountId" data-id="@acc.AccountId" data-name="@acc.AccountName"
+                                data-email="@acc.AccountEmail" data-role="@acc.AccountRole" data-pwd="@acc.AccountPassword">
+                                <td><span class="badge badge-role">#@acc.AccountId</span></td>
+                                <td class="fw-500" style="color:var(--text-primary)">@acc.AccountName</td>
+                                <td>@acc.AccountEmail</td>
+                                <td>
+                                    @switch (acc.AccountRole)
+                                    {
+                                        case 1: <span class="badge badge-active">Staff</span> break;
+                                        case 2: <span class="badge" style="background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3)">Lecturer</span> break;
+                                        default: <span class="badge badge-inactive">Unknown</span> break;
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditModal(this)" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAccount(@acc.AccountId, this)" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div class="modal fade" id="accountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Thêm tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="formError" class="alert alert-danger d-none"></div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label">ID tài khoản</label>
+                        <input type="number" class="form-control" id="fAccountId" required min="1" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" id="fRole">
+                            <option value="1">Staff (1)</option>
+                            <option value="2">Lecturer (2)</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Tên đầy đủ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="fName" placeholder="Nguyen Van A" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="fEmail" placeholder="email@FUNewsManagement.org" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="fPassword" placeholder="••••••••" required />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnSaveAccount" onclick="saveAccount()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let editMode = false;
+
+function openCreateModal() {
+    editMode = false;
+    document.getElementById('modalTitle').textContent = 'Thêm tài khoản mới';
+    document.getElementById('fAccountId').value = '';
+    document.getElementById('fAccountId').readOnly = false;
+    document.getElementById('fName').value = '';
+    document.getElementById('fEmail').value = '';
+    document.getElementById('fPassword').value = '';
+    document.getElementById('fRole').value = '1';
+    document.getElementById('formError').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('accountModal')).show();
+}
+
+function openEditModal(btn) {
+    editMode = true;
+    const row = btn.closest('tr');
+    document.getElementById('modalTitle').textContent = 'Chỉnh sửa tài khoản';
+    document.getElementById('fAccountId').value = row.dataset.id;
+    document.getElementById('fAccountId').readOnly = true;
+    document.getElementById('fName').value = row.dataset.name;
+    document.getElementById('fEmail').value = row.dataset.email;
+    document.getElementById('fPassword').value = row.dataset.pwd;
+    document.getElementById('fRole').value = row.dataset.role;
+    document.getElementById('formError').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('accountModal')).show();
+}
+
+async function saveAccount() {
+    const id = parseInt(document.getElementById('fAccountId').value);
+    const name = document.getElementById('fName').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const pwd = document.getElementById('fPassword').value;
+    const role = parseInt(document.getElementById('fRole').value);
+
+    if (!name || !email || !pwd || !id) {
+        showFormError('Vui lòng điền đầy đủ thông tin.'); return;
+    }
+    if (!email.includes('@@')) {
+        showFormError('Email không đúng định dạng.'); return;
+    }
+
+    const url = editMode ? '/Admin/UpdateAccount' : '/Admin/CreateAccount';
+    const res = await apiPost(url, { accountId: id, accountName: name, accountEmail: email, accountPassword: pwd, accountRole: role });
+
+    if (res.success) {
+        bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
+        showToast(editMode ? 'Cập nhật thành công!' : 'Thêm tài khoản thành công!', 'success');
+        setTimeout(() => location.reload(), 1000);
+    } else {
+        showFormError(res.message || 'Thao tác thất bại.');
+    }
+}
+
+async function deleteAccount(id, btn) {
+    const confirmed = await showConfirm('Bạn có chắc muốn xóa tài khoản này?');
+    if (!confirmed) return;
+
+    const formData = new FormData();
+    formData.append('id', id);
+    formData.append('__RequestVerificationToken', getToken());
+
+    const res = await fetch('/Admin/DeleteAccount', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (data.success) {
+        document.getElementById(`row-${id}`)?.remove();
+        showToast('Xóa tài khoản thành công!', 'success');
+    } else {
+        showToast(data.message || 'Xóa thất bại!', 'danger');
+    }
+}
+
+function showFormError(msg) {
+    const el = document.getElementById('formError');
+    el.textContent = msg;
+    el.classList.remove('d-none');
+}
+</script>
+<form id="__AntiForgery" style="display:none">@Html.AntiForgeryToken()</form>
+}

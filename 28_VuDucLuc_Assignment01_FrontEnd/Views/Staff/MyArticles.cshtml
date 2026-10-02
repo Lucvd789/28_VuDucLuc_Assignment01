@@ -1,0 +1,61 @@
+@model List<_28_VuDucLuc_Assignment01_FrontEnd.Models.NewsArticle>
+@{
+    ViewData["Title"] = "Bài viết của tôi";
+}
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-history me-3" style="color:#f97316"></i>Bài viết của tôi</h1>
+        <p class="page-subtitle mt-1">Lịch sử bài viết bạn đã tạo</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-newspaper fa-3x mb-3" style="color:var(--primary-light);opacity:0.3"></i>
+            <p class="text-muted-custom">Bạn chưa tạo bài viết nào.</p>
+            <a asp-action="NewsArticles" class="btn btn-primary mt-2">
+                <i class="fas fa-plus me-2"></i>Tạo bài viết đầu tiên
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="mb-3">
+            <span class="text-muted-custom small"><i class="fas fa-list me-1"></i>@Model.Count bài viết</span>
+        </div>
+        <div class="row g-4">
+            @foreach (var a in Model)
+            {
+                <div class="col-md-6 fade-in-up">
+                    <div class="news-card">
+                        <div class="news-card-accent"></div>
+                        <div class="news-card-body">
+                            <div class="news-card-category">
+                                <i class="fas fa-folder me-1"></i>@(a.Category?.CategoryName ?? "Chưa phân loại")
+                            </div>
+                            <h3 class="news-card-title">@a.NewsTitle</h3>
+                            <p class="news-card-excerpt">@a.Headline</p>
+                            @if (a.Tags.Any())
+                            {
+                                <div class="mt-2">
+                                    @foreach (var t in a.Tags)
+                                    { <span class="tag-chip">@t.TagName</span> }
+                                </div>
+                            }
+                        </div>
+                        <div class="news-card-footer">
+                            <span><i class="fas fa-calendar me-1"></i>@a.CreatedDate?.ToString("dd/MM/yyyy")</span>
+                            @if (a.NewsStatus == true)
+                            { <span class="badge badge-active">Active</span> }
+                            else
+                            { <span class="badge badge-inactive">Inactive</span> }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

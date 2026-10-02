@@ -1,0 +1,85 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model _28_VuDucLuc_Assignment01_FrontEnd.Models.LoginViewModel
+
+<div class="login-wrapper">
+    <div class="login-card fade-in-up">
+        <div class="login-icon">
+            <i class="fas fa-newspaper text-white"></i>
+        </div>
+        <h1 class="h4 text-center fw-bold mb-1">Đăng nhập</h1>
+        <p class="text-center text-muted-custom small mb-4">FU News Management System</p>
+
+        <form asp-controller="Account" asp-action="Login" method="post" id="loginForm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" style="display:none" id="loginError"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">
+                    <i class="fas fa-envelope me-1" style="color:var(--primary-light)"></i>Email
+                </label>
+                <input asp-for="Email" class="form-control" placeholder="your@email.com" autocomplete="email" id="loginEmail" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label">
+                    <i class="fas fa-lock me-1" style="color:var(--primary-light)"></i>Mật khẩu
+                </label>
+                <div class="position-relative">
+                    <input asp-for="Password" class="form-control pe-5" placeholder="••••••••" id="loginPassword" />
+                    <button type="button" class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2"
+                        style="background:transparent;border:none;color:var(--text-muted);padding:0.25rem 0.5rem;"
+                        onclick="togglePwd()">
+                        <i class="fas fa-eye" id="pwdIcon"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2" id="btnLogin">
+                <span id="btnLoginText"><i class="fas fa-sign-in-alt me-2"></i>Đăng nhập</span>
+                <span id="btnLoginSpinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...
+                </span>
+            </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-top" style="border-color:var(--border)!important">
+            <p class="text-center text-muted-custom small mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                Dùng tài khoản Admin: <code style="color:var(--primary-light)">admin@FUNewsManagementSystem.org</code>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        function togglePwd() {
+            const input = document.getElementById('loginPassword');
+            const icon = document.getElementById('pwdIcon');
+            if (input.type === 'password') {
+                input.type = 'text'; icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password'; icon.className = 'fas fa-eye';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function () {
+            document.getElementById('btnLoginText').classList.add('d-none');
+            document.getElementById('btnLoginSpinner').classList.remove('d-none');
+        });
+
+        // Show server-side error
+        const errSummary = document.querySelector('[data-valmsg-summary]');
+        if (errSummary && errSummary.querySelectorAll('li').length > 0) {
+            const el = document.getElementById('loginError');
+            el.style.display = 'block';
+            el.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Email hoặc mật khẩu không đúng.';
+        }
+    </script>
+}

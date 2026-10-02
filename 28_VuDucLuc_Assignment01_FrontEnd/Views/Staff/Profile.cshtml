@@ -1,0 +1,94 @@
+@model _28_VuDucLuc_Assignment01_FrontEnd.Models.SystemAccount
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-user-circle me-3" style="color:var(--primary-light)"></i>Hồ sơ cá nhân</h1>
+        <p class="page-subtitle mt-1">Xem và cập nhật thông tin cá nhân</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-3">
+                    <div class="user-avatar" style="width:48px;height:48px;font-size:1.2rem">
+                        @(Model?.AccountName?[0] ?? 'U')
+                    </div>
+                    <div>
+                        <div class="fw-600" style="color:var(--text-primary)">@Model?.AccountName</div>
+                        <div class="small text-muted-custom">
+                            @(Model?.AccountRole == 1 ? "Staff" : "Lecturer")
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="profileAlert" class="d-none mb-3"></div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">ID</label>
+                            <input type="text" class="form-control" value="@Model?.AccountId" readonly />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Tên đầy đủ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pName" value="@Model?.AccountName" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="pEmail" value="@Model?.AccountEmail" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mật khẩu mới</label>
+                            <input type="password" class="form-control" id="pPwd" value="@Model?.AccountPassword" placeholder="••••••••" />
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button class="btn btn-primary" onclick="updateProfile(@Model?.AccountId, @Model?.AccountRole)">
+                            <i class="fas fa-save me-2"></i>Lưu thay đổi
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-primary">Quay lại</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+async function updateProfile(accountId, accountRole) {
+    const name = document.getElementById('pName').value.trim();
+    const email = document.getElementById('pEmail').value.trim();
+    const pwd = document.getElementById('pPwd').value;
+
+    if (!name || !email || !pwd) {
+        showProfileAlert('Vui lòng điền đầy đủ thông tin.', 'danger'); return;
+    }
+    if (!email.includes('@@')) {
+        showProfileAlert('Email không đúng định dạng.', 'danger'); return;
+    }
+
+    const res = await apiPost('/Staff/UpdateProfile', {
+        accountId, accountName: name, accountEmail: email, accountPassword: pwd, accountRole
+    });
+
+    if (res.success) {
+        showProfileAlert('Cập nhật thành công!', 'success');
+        showToast('Hồ sơ đã được cập nhật!', 'success');
+    } else {
+        showProfileAlert(res.message || 'Cập nhật thất bại.', 'danger');
+    }
+}
+
+function showProfileAlert(msg, type) {
+    const el = document.getElementById('profileAlert');
+    el.className = `alert alert-${type}`;
+    el.textContent = msg;
+    el.classList.remove('d-none');
+    setTimeout(() => el.classList.add('d-none'), 4000);
+}
+</script>
+}

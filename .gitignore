@@ -3,6 +3,11 @@ bin/
 obj/
 out/
 
+# Assignment guide files (không cần commit)
+prn232_assignment_01_implementation_guide.md
+PRN232Assignment01.docx
+FUNewsManagement.sql
+
 # Visual Studio
 .vs/
 *.user
